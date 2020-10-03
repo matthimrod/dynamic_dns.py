@@ -8,7 +8,6 @@ use Email::Send::Gmail;
 use Email::Simple::Creator;
 
 my $config_file  = "dynamic_dns.yml";
-# my $log_file    = "/var/log/dynamic_dns/dynamic_dns.log";
 my $log_filename = "dynamic_dns.log";
 
 open(my $log_fh, '>>', $log_filename) or die "Cannot open log file ($log_filename) for appending.\n$!\n";
