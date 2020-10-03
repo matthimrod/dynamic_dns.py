@@ -11,6 +11,8 @@ my $config_file = "dynamic_dns.yml";
 # my $log_file    = "/var/log/dynamic_dns/dynamic_dns.log";
 my $log_file    = "dynamic_dns.log";
 
+open(my $log_fh, '>>', $log_filename) or die "Cannot open log file ($log_filename) for appending.\n$!\n";
+
 my $config = LoadFile($config_file);
 
 sub output {
