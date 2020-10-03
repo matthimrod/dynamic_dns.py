@@ -18,15 +18,15 @@ my $config = LoadFile($config_file);
 sub output {
     my $action = shift;
     my $message = shift;
-    my $out = sprintf("%04d-%02d-%02d %02d:%02d:%02d: %s", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3,2,1,0], sprintf($message, @_));
+    my $out = sprintf("%04d-%02d-%02d %02d:%02d:%02d: %s\n", (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3,2,1,0], sprintf($message, @_));
 
     print $log_fh $out;
 
-    if($action eq 'warn' or $action eq 'die') {
+    if($action eq 'email' or $action eq 'warn' or $action eq 'die') {
         my $email = Email::Simple->create(
             header => [
-                From    => $config->{config}->{from},
-                To      => $config->{config}->{to},
+                From    => $config->{config}->{email_from},
+                To      => $config->{config}->{email_to},
                 Subject => sprintf("Dynamic DNS Error: %s", $action),
                 ],
             body => sprintf("Dynamic DNS Script %s.\n\n%s.", $action, $out)
@@ -68,7 +68,6 @@ foreach my $site (sort keys %{$config->{sites}}) {
         $config->{$site}->{sites}->{last_result} = 'error';
         output('warn', "%s: %s", $site, $response->{content});
     }
-    print "\n";
 }
 
 DumpFile($config_file, $config);
