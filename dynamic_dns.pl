@@ -50,15 +50,13 @@ sub output {
     return;
 }
 
-
-
-foreach my $site (sort keys %$config) {
+foreach my $site (sort keys %{$config->{sites}}) {
     next if($site eq 'config');
-    next if($config->{$site}->{last_result} eq 'error');
+    next if($config->{sites}->{$site}->{last_result} eq 'error');
 
-    my $url = sprintf("https://%s:%s@domains.google.com/nic/update?hostname=%s", 
-                      $config->{$site}->{username}, 
-                      $config->{$site}->{password},
+    my $url = sprintf('https://%s:%s@domains.google.com/nic/update?hostname=%s', 
+                      $config->{sites}->{$site}->{username}, 
+                      $config->{sites}->{$site}->{password},
                       $site);
     my $response = HTTP::Tiny->new->get($url);
 
@@ -67,10 +65,10 @@ foreach my $site (sort keys %$config) {
     if($response->{content} =~ /^(good|nochg)/) {
         output('print', "%s: %s", $site, $response->{content});
     } else {
-        $config->{$site}->{last_result} = 'error';
+        $config->{$site}->{sites}->{last_result} = 'error';
         output('warn', "%s: %s", $site, $response->{content});
     }
-    print "\n\n";
+    print "\n";
 }
 
 DumpFile($config_file, $config);
