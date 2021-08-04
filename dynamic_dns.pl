@@ -57,6 +57,12 @@ foreach my $site (sort keys %{$config->{sites}}) {
                       $config->{sites}->{$site}->{username}, 
                       $config->{sites}->{$site}->{password},
                       $site);
+    if($config->{sites}->{$site}->{use_local_ip}) {
+        my $interface = $config->{sites}->{$site}->{use_local_ip};
+        my $local_ip = `ip -4 address show $interface`;
+        $local_ip =~ /inet ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})/;
+        $url .= "\&myip=$1";
+    }
     my $response = HTTP::Tiny->new->get($url);
 
     output('warn', 'DNS API call failed.') unless $response->{success};
@@ -64,7 +70,7 @@ foreach my $site (sort keys %{$config->{sites}}) {
     if($response->{content} =~ /^(good|nochg)/) {
         output('print', "%s: %s", $site, $response->{content});
     } else {
-        $config->{$site}->{sites}->{last_result} = 'error';
+        $config->{sites}->{$site}->{last_result} = 'error';
         output('warn', "%s: %s", $site, $response->{content});
     }
 }
