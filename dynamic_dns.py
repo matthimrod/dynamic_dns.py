@@ -50,7 +50,7 @@ Subject: Dynamic DNS error.
             server.sendmail(config['config']['email_from'], config['config']['email_to'], email_text)
             server.close()
 
-        logging.info('Email sent to %s.', config['config']['email_to'])
+        logging.warn('Email sent to %s.', config['config']['email_to'])
     except:
         logging.error('Something went wrong while sending the failure email.')
 
@@ -63,6 +63,7 @@ for site in config['sites']:
             payload['myip'] = get_ip()
 
         result = requests.get(config['config']['api_url'], auth=(config['sites'][site]['username'], config['sites'][site]['password']), params=payload)
+        logging.info('%s: %s', site, result.text)
 
         if (result.status_code != requests.codes.ok) or not (re.match('(good|nochg)', result.text)):
             logging.error(f'DNS API call failed for {site}. {result.text}')
