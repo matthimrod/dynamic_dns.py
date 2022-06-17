@@ -1,0 +1,18 @@
+config:
+  api_url: https://domains.google.com/nic/update
+  email_from: noreply@matthimrod.com
+  email_to: matt@matthimrod.com
+  log_filename: /var/log/dynamic_dns/dynamic_dns.log
+  password: ekunarbrywscorrp
+  username: noreply.matthimrod@gmail.com
+sites:
+  beulah.matthimrod.com:
+    password: Ejj72tjFHyPqJnLM
+    username: dPokXPZw3AZnAydx
+  home.matthimrod.com:
+    password: bjWPzJHqJKrzunMH
+    username: uT7Jtqa9zPq07wqt
+  home4.matthimrod.com:
+    ip_api_url: https://api.ipify.org
+    password: NWMpUo6Z6NpMSZoQ
+    username: gkB0rWRKAX7v0IXE
