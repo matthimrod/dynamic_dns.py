@@ -1,0 +1,15 @@
+config:
+  api_url: https://domains.google.com/nic/update
+  email_from: 
+  email_to: 
+  log_filename: /var/log/dynamic_dns/dynamic_dns.log
+  password: 
+  username: 
+sites:
+  dynamic.matthimrod.com:
+    password: 
+    username: 
+  dynamic-ip4.matthimrod.com:
+    ip_api_url: https://api.ipify.org
+    password: 
+    username: 
