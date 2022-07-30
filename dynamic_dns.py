@@ -20,18 +20,6 @@ with open(CONFIG_FILENAME, 'r') as stream:
 
 logging.basicConfig(filename=config['config']['log_filename'], encoding='utf-8', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S')
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
 def email(message):
     email_text = f"""\
 From: {config['config']['email_from']}
@@ -54,6 +42,29 @@ Subject: Dynamic DNS error.
     except:
         logging.error('Something went wrong while sending the failure email.')
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+def get_public_ip(api_url):
+    result = requests.get(api_url)
+    if result.status_code != requests.codes.ok:
+        message = f'IP API call failed. {result.text}'
+        logging.error(message)
+        email(message)
+        IP = '127.0.0.1'
+    else:
+        IP = result.text
+    return IP
+
 
 for site in config['sites']:
     if not (('last_result' in config['sites'][site]) and (config['sites'][site]['last_result'] != 'error')):
@@ -61,6 +72,8 @@ for site in config['sites']:
         payload['hostname'] = site
         if 'use_local_ip' in config['sites'][site]:
             payload['myip'] = get_ip()
+        if 'ip_api_url' in config['sites'][site]:
+            payload['myip'] = get_public_ip(config['sites'][site]['ip_api_url'])
 
         result = requests.get(config['config']['api_url'], auth=(config['sites'][site]['username'], config['sites'][site]['password']), params=payload)
         logging.info('%s: %s', site, result.text)
