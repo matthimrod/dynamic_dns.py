@@ -90,7 +90,8 @@ Subject: Dynamic DNS error: {my_hostname}
 
 
 for site in config['sites']:
-    if not (('last_result' in config['sites'][site]) and (config['sites'][site]['last_result'] != 'error')):
+    if not (('last_result' in config['sites'][site]) and \
+            (config['sites'][site]['last_result'] != 'error')):
         payload = {}
         payload['hostname'] = site
         if 'use_local_ip' in config['sites'][site]:
@@ -101,11 +102,14 @@ for site in config['sites']:
             payload['myip'] = get_public_ip(
                 config['sites'][site]['ip_api_url'])
 
-        result = requests.get(config['config']['api_url'], auth=(
-            config['sites'][site]['username'], config['sites'][site]['password']), params=payload)
+        result = requests.get(config['config']['api_url'],
+                              auth=(config['sites'][site]['username'],
+                                    config['sites'][site]['password']),
+                              params=payload)
         logger.info('%s: %s', site, result.text)
 
-        if (result.status_code != requests.codes.ok) or not (re.match('(good|nochg)', result.text)):
+        if (result.status_code != requests.codes.ok) or \
+            not (re.match('(good|nochg)', result.text)):
             logger.error(f'DNS API call failed for {site}. {result.text}')
             email(f'DNS API call failed for {site}. {result.text}')
             config['sites'][site]['last_result'] = 'error'
