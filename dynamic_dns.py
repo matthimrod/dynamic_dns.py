@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import logging
+import os
 import re
 import requests
 import smtplib
@@ -8,9 +9,9 @@ import socket
 import ssl
 import yaml
 
-CONFIG_FILENAME = "dynamic_dns.yml"
-
 my_hostname = socket.gethostname()
+CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+                               f"dynamic_dns.{my_hostname}.yml")
 
 config = []
 with open(CONFIG_FILENAME, 'r') as config_file:
@@ -19,11 +20,12 @@ with open(CONFIG_FILENAME, 'r') as config_file:
     except yaml.YAMLError as exc:
         print(exc)
 
-logging.basicConfig(filename=config.get('config', {}).get('log_filename'), 
-                    encoding='utf-8', 
-                    level=logging.INFO, 
+logging.basicConfig(filename=config.get('config', {}).get('log_filename'),
+                    encoding='utf-8',
+                    level=logging.INFO,
                     format='%(asctime)s %(message)s')
 logger = logging.getLogger()
+
 
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -37,6 +39,7 @@ def get_ip():
         s.close()
     return IP
 
+
 def get_ip6():
     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     try:
@@ -48,16 +51,16 @@ def get_ip6():
         s.close()
     return IP
 
+
 def get_public_ip(api_url):
     result = requests.get(api_url)
     if result.status_code != requests.codes.ok:
         message = f'IP API call failed. {result.text}'
         logging.error(message)
         email(message)
-        IP = '127.0.0.1'
+        return None
     else:
-        IP = result.text
-    return IP
+        return result.text
 
 
 def email(message):
@@ -74,11 +77,13 @@ Subject: Dynamic DNS error: {my_hostname}
         context = ssl.create_default_context()
 
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
-            server.login(config['config']['username'], config['config']['password'])
-            server.sendmail(config['config']['email_from'], config['config']['email_to'], email_text)
+            server.login(config['config']['username'],
+                         config['config']['password'])
+            server.sendmail(config['config']['email_from'],
+                            config['config']['email_to'], email_text)
             server.close()
 
-        logger.warn('Email sent to %s.', config['config']['email_to'])
+        logger.warning('Email sent to %s.', config['config']['email_to'])
     except:
         logger.error('Something went wrong while sending the failure email.')
 
@@ -92,9 +97,11 @@ for site in config['sites']:
         if 'use_local_ip6' in config['sites'][site]:
             payload['myip'] = get_ip6()
         if 'ip_api_url' in config['sites'][site]:
-            payload['myip'] = get_public_ip(config['sites'][site]['ip_api_url'])
+            payload['myip'] = get_public_ip(
+                config['sites'][site]['ip_api_url'])
 
-        result = requests.get(config['config']['api_url'], auth=(config['sites'][site]['username'], config['sites'][site]['password']), params=payload)
+        result = requests.get(config['config']['api_url'], auth=(
+            config['sites'][site]['username'], config['sites'][site]['password']), params=payload)
         logger.info('%s: %s', site, result.text)
 
         if (result.status_code != requests.codes.ok) or not (re.match('(good|nochg)', result.text)):
